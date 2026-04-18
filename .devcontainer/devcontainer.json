@@ -9,7 +9,8 @@
   "mounts": [
     "type=volume,source=viberun-claude-home,target=/home/vscode/.claude",
     "type=volume,source=viberun-codex-home,target=/home/vscode/.codex",
-    "type=volume,source=viberun-node-modules,target=/workspaces/viberun/node_modules"
+    "type=volume,source=viberun-node-modules,target=/workspaces/viberun/node_modules",
+    "type=volume,source=viberun-ssh,target=/home/vscode/.ssh"
   ],
   "remoteUser": "vscode",
   "init": true,

@@ -11,7 +11,31 @@ target_home="/home/${target_user}"
 
 install -d -m 0700 -o "${target_user}" -g "${target_user}" \
     "${target_home}/.claude" \
-    "${target_home}/.codex"
+    "${target_home}/.codex" \
+    "${target_home}/.ssh"
+
+# Initialize a repo-scoped SSH deploy key on first run. The public key is
+# printed so the user can paste it into GitHub's Deploy keys page.
+key_path="${target_home}/.ssh/id_ed25519"
+if [ ! -f "${key_path}" ]; then
+    sudo -u "${target_user}" ssh-keygen -t ed25519 -N "" -C "viberun-devcontainer" -f "${key_path}" -q
+    echo ""
+    echo "=== SSH deploy key generated ==="
+    echo "Add this public key at https://github.com/nwjt2/viberun/settings/keys"
+    echo "(pick 'Add deploy key', tick 'Allow write access'):"
+    echo ""
+    cat "${key_path}.pub"
+    echo ""
+    echo "================================"
+    echo ""
+fi
+# Pre-seed known_hosts with GitHub's SSH keys so connections don't prompt.
+known_hosts="${target_home}/.ssh/known_hosts"
+if ! sudo -u "${target_user}" grep -q "^github.com " "${known_hosts}" 2>/dev/null; then
+    ssh-keyscan -t ed25519,ecdsa,rsa github.com 2>/dev/null >> "${known_hosts}"
+    chown "${target_user}:${target_user}" "${known_hosts}"
+    chmod 0644 "${known_hosts}"
+fi
 
 # Set repo-local git identity so commits always use the GitHub noreply email.
 # Runs as root, so scope the config to the target user.
