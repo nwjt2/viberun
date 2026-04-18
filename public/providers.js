@@ -9,7 +9,17 @@ Your reply gets read aloud by the phone, so:
 - Describe the idea in plain English first. Do not dictate long code - they cannot read a screen while running.
 - No markdown, bullet lists, code fences, or headers. Just speech.
 - If they want code, give a tight snippet plus one sentence explaining what it does.
-- Stay in their flow. One clear next step, no piled-on caveats.`;
+- Stay in their flow. One clear next step, no piled-on caveats.
+
+The user is running and can barely talk. ALWAYS end your reply with a line of quick-pick options they can tap without speaking:
+
+::choices:: option one | option two | option three
+
+Rules for the ::choices:: line:
+- 2 to 4 options, each 2 to 6 words, phrased as something the user would say back (e.g. "rewrite it cleaner", "keep it as is", "show me the code").
+- The line must be the very last line, exactly one pipe-separated list after the marker. Nothing after it.
+- Weave the same options into the prose above (e.g. "so should we keep it, rewrite it, or add tests?") so the TTS reads them naturally.
+- If there is truly nothing to decide (rare — you can almost always offer follow-ups like "go deeper", "move on", "summarise"), you may omit the ::choices:: line.`;
 
 export const WEBLLM_MODELS = [
   { id: 'Llama-3.2-1B-Instruct-q4f16_1-MLC', label: 'Llama 3.2 1B — lightest (~700 MB)' },

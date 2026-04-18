@@ -137,6 +137,7 @@ function startListening() {
 }
 
 async function sendMessage(text) {
+  retireStaleChips();
   clearEmpty();
   appendMessage('user', text);
   conversation.push({ role: 'user', content: text });
@@ -151,7 +152,7 @@ async function sendMessage(text) {
       conversation,
       (delta) => {
         full += delta;
-        currentAssistantEl.textContent = full;
+        currentAssistantEl.textContent = stripChoices(full);
         scrollToBottom();
       },
       (report) => showWebllmProgress(report),
@@ -166,12 +167,67 @@ async function sendMessage(text) {
     return;
   }
 
+  const { spoken, choices } = parseReply(full);
+  currentAssistantEl.textContent = spoken;
   currentAssistantEl.classList.remove('streaming');
+  if (choices.length) attachChips(currentAssistantEl, choices);
   currentAssistantEl = null;
   conversation.push({ role: 'assistant', content: full });
 
-  if (full.trim() && settings.tts) speak(full);
+  if (spoken.trim() && settings.tts) speak(spoken);
   else setStatus('idle');
+}
+
+const CHOICES_MARKER = '::choices::';
+
+function parseReply(full) {
+  const idx = full.indexOf(CHOICES_MARKER);
+  if (idx === -1) return { spoken: full.trim(), choices: [] };
+  const spoken = full.slice(0, idx).trim();
+  const after = full.slice(idx + CHOICES_MARKER.length);
+  const firstLine = (after.split('\n')[0] || '').trim();
+  const choices = firstLine
+    .split('|')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  return { spoken, choices };
+}
+
+function stripChoices(full) {
+  const idx = full.indexOf('::choices::');
+  if (idx === -1) return full;
+  return full.slice(0, idx).trimEnd();
+}
+
+function attachChips(afterEl, choices) {
+  const wrap = document.createElement('div');
+  wrap.className = 'chips';
+  for (const c of choices) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = c;
+    b.addEventListener('click', () => onChipTap(c, wrap));
+    wrap.appendChild(b);
+  }
+  afterEl.insertAdjacentElement('afterend', wrap);
+  scrollToBottom();
+}
+
+function onChipTap(text, wrap) {
+  wrap.classList.add('used');
+  for (const b of wrap.querySelectorAll('button')) b.disabled = true;
+  primeSpeech();
+  cancelSpeech();
+  sendMessage(text);
+}
+
+function retireStaleChips() {
+  for (const wrap of logEl.querySelectorAll('.chips:not(.used)')) {
+    wrap.classList.add('used');
+    for (const b of wrap.querySelectorAll('button')) b.disabled = true;
+  }
 }
 
 function speak(text) {
@@ -232,11 +288,34 @@ function showError(msg) {
   scrollToBottom();
 }
 
+const STARTER_CHIPS = [
+  'I want to brainstorm an idea',
+  'Help me think through a problem',
+  'Teach me something new',
+  'Surprise me — pick a coding topic',
+];
+
 function renderEmpty() {
   const el = document.createElement('div');
   el.className = 'empty';
   el.id = 'empty';
-  el.textContent = 'Tap the mic and talk. The AI will reply out loud.';
+  const hint = document.createElement('p');
+  hint.textContent = 'Tap a chip to start, or hit the mic and talk.';
+  el.appendChild(hint);
+  const chips = document.createElement('div');
+  chips.className = 'chips starter';
+  for (const text of STARTER_CHIPS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = text;
+    b.addEventListener('click', () => {
+      primeSpeech();
+      sendMessage(text);
+    });
+    chips.appendChild(b);
+  }
+  el.appendChild(chips);
   logEl.appendChild(el);
 }
 
