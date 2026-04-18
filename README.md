@@ -1,25 +1,51 @@
-# VibeRun
+﻿# VibeRun
 
-A minimal web app scaffold for "vibe code while running".
+A minimal web app scaffold for 'vibe code while running'.
 
-## Local Docker setup
+## Development Setup
 
-Build the image locally:
+Since this is a public repository, development uses a devcontainer in WSL for strict separation from your personal computer files.
 
-```powershell
-docker build -t viberun .
-```
+### Prerequisites
+- Windows with WSL2 installed
+- VS Code with Dev Containers extension
+- Docker Desktop
 
-Run the container:
+### Setup Steps
+1. In WSL (Ubuntu), clone the repo into your WSL filesystem:
+   `ash
+   cd ~
+   git clone https://github.com/nwjt2/viberun.git
+   cd viberun
+   `
 
-```powershell
-docker run --rm -p 3000:3000 viberun
-```
-```
+2. Open the WSL folder in VS Code:
+   `ash
+   code .
+   `
 
-Open `http://localhost:3000` in your browser.
+3. In VS Code, run Dev Containers: Reopen in Container from the command palette.
 
-## Notes
+4. The devcontainer will build and set up the environment with Node.js and AI tools.
 
-- This repository is intentionally small and focused on the app and Docker container.
-- No Docker Hub publishing is required for local development.
+5. Start the app:
+   `ash
+   npm start
+   `
+
+6. Open http://localhost:3000 in your browser.
+
+### Workflow
+- Edit files in VS Code (running in the devcontainer).
+- Changes are isolated to the container; no files touch your host.
+- AI tools (Claude, Codex) auth is stored in container volumes.
+- 
+ode_modules is in a named volume for persistence.
+
+### Stopping
+- Close the VS Code window or run Dev Containers: Reclose Container.
+
+### Notes
+- The devcontainer uses named volumes for mutable state, keeping the repo clean.
+- No host filesystem is mounted except the workspace itself.
+- This setup follows the WSL Devcontainer Pattern for secure, isolated development.

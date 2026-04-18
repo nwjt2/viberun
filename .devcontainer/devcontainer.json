@@ -1,0 +1,29 @@
+{
+  "name": "VibeRun",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/viberun,type=bind",
+  "workspaceFolder": "/workspaces/viberun",
+  "mounts": [
+    "type=volume,source=viberun-claude-home,target=/home/vscode/.claude",
+    "type=volume,source=viberun-codex-home,target=/home/vscode/.codex",
+    "type=volume,source=viberun-node-modules,target=/workspaces/viberun/node_modules"
+  ],
+  "remoteUser": "vscode",
+  "init": true,
+  "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "anthropic.claude-code",
+        "openai.chatgpt",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  }
+}
