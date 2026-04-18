@@ -289,10 +289,10 @@ function showError(msg) {
 }
 
 const STARTER_CHIPS = [
-  'I want to brainstorm an idea',
-  'Help me think through a problem',
-  'Teach me something new',
-  'Surprise me — pick a coding topic',
+  'Brainstorm a new idea',
+  'Help me debug something',
+  'Weigh a design choice',
+  'Plan a refactor',
 ];
 
 function renderEmpty() {
