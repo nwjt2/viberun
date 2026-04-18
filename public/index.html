@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VibeRun</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <h1>VibeRun</h1>
+        <p>Create code vibes while you run — stay in rhythm with your flow and watch your code glow.</p>
+      </section>
+
+      <section class="app-shell">
+        <div class="panel editor-panel">
+          <h2>Code Editor</h2>
+          <textarea id="code-editor" aria-label="Code editor" spellcheck="false">// Type your vibe code here
+function breathe() {
+  return 'run the rhythm';
+}
+</textarea>
+        </div>
+
+        <div class="panel vibe-panel">
+          <h2>Vibe Meter</h2>
+          <div id="vibe-bars" class="vibe-bars"></div>
+          <button id="run-vibe">Start Vibe</button>
+          <p class="hint">Tap the button to animate the beat, then keep coding and stay moving.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

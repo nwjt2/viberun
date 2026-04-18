@@ -1,0 +1,138 @@
+:root {
+  color-scheme: dark;
+  background: #080a12;
+  color: #e6edf9;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #0b1223 0%, #111825 100%);
+}
+
+.page-shell {
+  width: min(1040px, 92vw);
+  padding: 32px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 4vw, 4.4rem);
+  letter-spacing: -0.04em;
+}
+
+.hero p {
+  margin: 18px auto 0;
+  max-width: 640px;
+  color: #b3c0dc;
+  line-height: 1.7;
+}
+
+.app-shell {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panel {
+  background: rgba(11, 18, 35, 0.88);
+  border: 1px solid rgba(155, 179, 255, 0.15);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.18);
+}
+
+.panel h2 {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+}
+
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+#code-editor {
+  width: 100%;
+  min-height: 420px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.98rem;
+  background: rgba(9, 14, 24, 0.96);
+  color: #eef4ff;
+  line-height: 1.6;
+}
+
+.vibe-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.vibe-bars {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-items: end;
+  min-height: 220px;
+}
+
+.vibe-bar {
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #8bd5ff, #1d78ff);
+  transform-origin: bottom center;
+  height: 18px;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.vibe-bar:nth-child(odd) {
+  background: linear-gradient(180deg, #ffc76b, #ff7b9b);
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #3f6fff;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  background: #5d8bff;
+}
+
+.hint {
+  color: #a9b8d8;
+  margin: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+}
