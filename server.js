@@ -4,14 +4,18 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express();
-const port = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+const port = Number(process.env.PORT) || 3000;
+
+const app = express();
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  maxAge: '0',
+}));
+
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
 app.listen(port, () => {
-  console.log(`VibeRun app listening on http://localhost:${port}`);
+  console.log(`[viberun] serving http://localhost:${port}`);
+  console.log('[viberun] bring-your-own-key: the browser talks to your chosen AI provider directly.');
 });

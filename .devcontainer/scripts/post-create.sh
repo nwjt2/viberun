@@ -19,6 +19,10 @@ sudo -u "${target_user}" git -C "${workspace}" config user.email "277266510+nwjt
 sudo -u "${target_user}" git -C "${workspace}" config user.name "nwjt2"
 
 # Install dependencies into the mounted node_modules volume
+# Ensure node_modules is owned by the target user (it may be created as root
+# by Docker volume mount before this script runs).
+install -d -m 0755 -o "${target_user}" -g "${target_user}" "${workspace}/node_modules"
+
 if [ -f "${workspace}/package-lock.json" ]; then
     cd "${workspace}"
     sudo -u "${target_user}" npm ci
