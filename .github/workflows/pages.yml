@@ -27,9 +27,11 @@ jobs:
       - run: npm -w @viberun/shared run build
       - run: npm -w @viberun/mobile-pwa run build
         env:
-          # Leave empty in iteration 1 — the PWA falls back to local mode, which
-          # is fine for the public Pages build (the Companion lives on the user's
-          # laptop). Wire these secrets when Supabase is provisioned.
+          # Derive Pages base path from the repo name so forks + renames work
+          # without editing this file: https://<owner>.github.io/<repo>/.
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          # Supabase secrets are optional — unset means the PWA runs in local
+          # mode and expects a runtime-configured companion URL.
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/configure-pages@v5

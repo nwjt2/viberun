@@ -2,7 +2,16 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// `base` is the public path prefix under which the PWA is served.
+//   - localhost dev: '/'
+//   - GitHub Pages (project site): '/<repo-name>/', set via VITE_BASE_PATH
+//     env var in .github/workflows/pages.yml
+// The PWA's router picks this up via import.meta.env.BASE_URL (Vite
+// automatically mirrors `base` into that env var).
+const base = process.env.VITE_BASE_PATH ?? '/';
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -11,13 +20,14 @@ export default defineConfig({
         name: 'Viberun',
         short_name: 'Viberun',
         description: 'Vibe code while you run.',
-        start_url: '/',
+        start_url: base,
+        scope: base,
         display: 'standalone',
         background_color: '#0b0f14',
         theme_color: '#0b0f14',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: `${base}icon-192.png`.replace(/\/+/g, '/'), sizes: '192x192', type: 'image/png' },
+          { src: `${base}icon-512.png`.replace(/\/+/g, '/'), sizes: '512x512', type: 'image/png' },
         ],
       },
     }),
@@ -25,8 +35,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // In local dev, forward companion API calls. In prod deploys, the PWA
-      // reaches Supabase directly, so this proxy is unused.
+      // Dev proxy to the companion's local HTTP port. Prod deploys either
+      // talk to Supabase directly (mode=supabase) or to the companion via a
+      // runtime-configured absolute URL — see lib/jobs.ts `getCompanionBaseUrl`.
       '/api/companion': {
         target: 'http://localhost:4000',
         changeOrigin: true,
