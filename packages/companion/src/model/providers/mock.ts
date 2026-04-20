@@ -89,20 +89,27 @@ const fixtures: Fixture[] = [
   {
     match: (jt) => jt === 'ask_next_clarifying_question',
     reply: (_jt, prompt) => {
-      const hasName = /"name":\s*"[^"]+"/.test(prompt);
-      const hasEntities = /"entities":\s*\[[^\]]+\]/.test(prompt);
-      if (!hasName)
+      // Progress based on how many questions have already been answered.
+      // The PWA appends each answer to `answeredQuestions` but doesn't merge
+      // into draftSpec until draft_high_level_spec runs, so tracking progress
+      // by the answers array is the only reliable signal.
+      const answeredMatch = /"answeredQuestions":\s*\[([\s\S]*?)\]\s*[,}]/.exec(prompt);
+      const answered = answeredMatch?.[1] ?? '';
+      const numAnswered = (answered.match(/"question"\s*:/g) ?? []).length;
+      if (numAnswered < 1) {
         return {
           question: 'What should we call this app?',
           suggestedAnswers: [],
           done: false,
         };
-      if (!hasEntities)
+      }
+      if (numAnswered < 2) {
         return {
           question: 'What is the main thing you want to track?',
           suggestedAnswers: ['Reads', 'Runs'],
           done: false,
         };
+      }
       return { question: '', suggestedAnswers: [], done: true };
     },
   },

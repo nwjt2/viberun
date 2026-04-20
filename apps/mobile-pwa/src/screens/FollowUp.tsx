@@ -96,14 +96,25 @@ export function FollowUp() {
     );
   }
 
+  // Open-ended question: no suggested answers means there's no sensible
+  // two-option shortcut. Skip straight to voice input (plus Skip).
+  if (next.suggestedAnswers.length === 0) {
+    return (
+      <section className="space-y-4">
+        <p className="big-text">{next.question}</p>
+        <MicButton onTranscript={(t) => { setTranscript(t); setCustomMode(true); }} />
+        <BigButton tone="ghost" onClick={() => void askNext(draftSpec)}>
+          Skip
+        </BigButton>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-5">
       <p className="big-text">{next.question}</p>
       <TwoOptions
-        options={(next.suggestedAnswers.length ? next.suggestedAnswers : ['Yes', 'No']).map((a, i) => ({
-          id: `${i}`,
-          label: a,
-        }))}
+        options={next.suggestedAnswers.map((a, i) => ({ id: `${i}`, label: a }))}
         onPick={(opt) => void answer(opt.label)}
         onOther={() => setCustomMode(true)}
       />
