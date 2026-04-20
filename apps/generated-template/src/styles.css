@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --app-theme: #0b0f14;
+}
+
+body {
+  min-height: 100svh;
+}

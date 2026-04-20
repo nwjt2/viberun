@@ -1,82 +1,118 @@
-# VibeRun
+# Viberun
 
-Vibe code while you run. Tap the mic, talk to an AI, hear the reply.
+Vibe code while you run. Talk into your phone; a simple voice-driven loop turns
+your ideas into a working web app slice by slice.
 
-VibeRun is a mobile-first web app for brainstorming and noodling on code out loud — on a run, a walk, wherever. Voice in, voice out. The AI runs in your browser (or on a free-tier provider you choose), so nothing routes through our server and using the app costs the hoster nothing.
+Viberun narrows an idea into a buildable first version, lets you approve it by
+voice or big-button, and then hands it off to a **local Build Companion** on your
+laptop that writes the actual code. The default path is zero-cost: free-tier
+Supabase, free-tier Gemini CLI, free GitHub Pages hosting, a PWA on your phone.
 
-This is an MVP. It works end-to-end and that's about it. More features land iteratively in the open.
+This is an iteration-1 MVP. Voice-driven idea → spec → slice plan → the
+**foundation** slice of a record-based tracker gets written to disk and built.
+More slices and shapes land in later iterations. See `free_path.md` for the
+full roadmap.
 
-## How it works
+## Three pieces
 
-- Phone speech recognition turns your voice into text.
-- An AI model replies — either **WebLLM** (runs locally in your browser using WebGPU) or **Google Gemini** (free tier).
-- The reply streams back to the screen and gets read aloud.
-- Conversation lives in memory on the page only. Reload or tap **Clear conversation** to reset.
-
-The server ([server.js](server.js)) is ~20 lines and only serves static files. It never sees your prompts or any credentials.
-
-## AI providers
-
-On first launch, VibeRun opens Settings and asks you to pick one.
-
-### WebLLM (default)
-
-Runs a small language model **entirely in your browser**. No key, no account, no cost. Genuinely free and private — the model stays on your device.
-
-- First use downloads a model (~700 MB for Llama 3.2 1B, up to ~2.5 GB for Phi 3.5 mini). Cached afterwards in IndexedDB.
-- Needs **WebGPU**: iOS Safari 18+, recent Android Chrome, desktop Chrome/Edge. Firefox needs WebGPU enabled via a flag.
-- Quality is lower than hosted models. Small models are OK for short conversational help but won't one-shot complex code. Upgrade to the 3B models if your phone can handle the RAM.
-- First-time load takes a while (download + compile). Do it on wifi before you head out.
-
-### Google Gemini (free tier)
-
-Uses Google's free-tier Gemini API. Free key, generous daily quota (enough for plenty of runs), no billing required unless you exceed the free limits.
-
-1. Get a key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Free, no credit card.
-2. Paste it into VibeRun → Settings.
-3. Pick a model (Gemini 2.5 Flash is a good default).
-
-The key stays in your browser's `localStorage` and is sent directly to `generativelanguage.googleapis.com`. Nothing routes through our server.
-
-## Running it yourself
-
-```bash
-npm install
-npm start
-# open http://localhost:3000
+```
+  phone (PWA)            your laptop                    cloud
+  -----------            -----------                    -----
+  apps/mobile-pwa  <---> packages/companion  <-------> supabase
+                         (Node, Gemini CLI)             (auth + job queue)
+                            |
+                            v
+                         your project workspace
+                         (~/.viberun/projects/<id>)
+                         built from apps/generated-template
 ```
 
-That's it. [server.js](server.js) is a tiny Express static server — swap it for any static host.
+- **`apps/mobile-pwa`** — React/Vite/TS/Tailwind PWA. Voice in, voice out. Runs
+  on iOS Safari 18+ / Android Chrome. Installs from the browser.
+- **`packages/companion`** — Node/TS daemon. Authenticates to your Supabase
+  project, watches for jobs, shells out to Gemini CLI for planning/coding, writes
+  generated code to a local workspace.
+- **`supabase/`** — schema + migrations. Backs auth, the job queue, and your
+  project state. Free tier is plenty.
 
-### On your phone
+Plus:
 
-The mic and WebGPU both need **HTTPS** (or localhost). To test a dev server from your phone, use a tunnel like Tailscale Funnel, `cloudflared`, or `ngrok`.
+- **`packages/shared`** — Zod schemas and types shared by mobile + companion.
+- **`apps/generated-template`** — React/Vite/TS/Tailwind/Router/supabase-js/PWA
+  starter the Companion copies per new project.
 
-### Devcontainer (WSL)
+## Quickstart
 
-This repo was built with an isolated WSL devcontainer setup. If you're on Windows:
+### Use Viberun (on your phone)
 
-1. In WSL (Ubuntu), `git clone` this repo into your WSL home.
-2. `code .` to open it in VS Code.
-3. Run **Dev Containers: Reopen in Container**.
-4. Once up, `npm start`.
+When the PWA is deployed (GitHub Pages, a tunnel from your laptop, or your
+own host), open the URL on your phone and **Add to Home Screen**. Tap to talk,
+pick options, get a slice built. You also need to run the Companion on a
+laptop — see below.
 
-`node_modules`, shell history, and AI-CLI auth all live in named Docker volumes — the repo stays clean.
+### Run the Companion (on your laptop)
 
-## Browser support
+```bash
+git clone https://github.com/<you>/viberun && cd viberun
+npm ci
+npm run dev:companion       # mock provider, local HTTP queue — no Supabase required
+```
 
-| Browser | Mic | WebLLM | Gemini |
-| --- | --- | --- | --- |
-| iOS Safari 18+ | ✓ | ✓ (WebGPU) | ✓ |
-| Android Chrome | ✓ | ✓ (WebGPU) | ✓ |
-| Desktop Chrome/Edge | ✓ | ✓ | ✓ |
-| Firefox | ✗ | — | — |
+Full setup with Supabase + Gemini CLI is in
+[docs/build_companion_setup.md](docs/build_companion_setup.md).
 
-## Privacy / security
+### Develop Viberun
 
-- **WebLLM:** everything stays on your device. The browser downloads the model from a CDN, then runs it locally with no further network traffic.
-- **Gemini:** your prompts and key go straight from your browser to Google. No third party sees them (including the VibeRun server). Your key lives in `localStorage` on the device you pasted it into — don't paste into instances you don't trust; a hosted page could exfiltrate it. Run your own copy if you're cautious.
+```bash
+npm ci
+npm run dev:pwa             # http://localhost:5173
+npm run dev:companion       # http://localhost:4000 (in another terminal)
+```
 
-## Contributing / roadmap
+The PWA proxies `/api/companion/*` to the Companion in dev mode, so enqueueing
+jobs Just Works with zero credentials. Run the full verification suite with:
 
-Roadmap is deliberately empty. Obvious near-term things: stream TTS sentence-by-sentence as replies arrive; "repeat that" / "slower" voice commands; save transcripts across reloads; support for Groq / OpenRouter free tiers; a local Ollama option over LAN. PRs and issues welcome.
+```bash
+npm run verify
+```
+
+## Architecture
+
+See [docs/free_path_architecture.md](docs/free_path_architecture.md) for the
+deep-dive. In short: mobile PWA enqueues jobs into Supabase; the Companion
+claims them with `FOR UPDATE SKIP LOCKED`, calls a pluggable `ModelProvider`
+for structured planning, writes code to a local workspace, runs
+install/typecheck/build, and writes results back.
+
+## Scope
+
+What Viberun builds, what it refuses, and how it narrows an idea to fit the
+free path: [docs/free_path_scope.md](docs/free_path_scope.md).
+
+## Known deviations from the original spec
+
+The spec (`free_path.md`) names Flutter as the mobile stack. Iteration 1 is a
+PWA instead. Rationale is in
+[docs/decisions/0001-pwa-first-mobile-input.md](docs/decisions/0001-pwa-first-mobile-input.md).
+Everything else (Supabase, Companion, generated-app stack, Firebase previews
+roadmap) matches the spec.
+
+## Iterations
+
+- **Iter 1 (now):** planning flow + one real slice (foundation of a record-tracker).
+- **Iter 2:** broader `implement_slice` (data_model, list_detail, create_edit, polish).
+- **Iter 3:** Firebase Hosting preview channels.
+- **Iter 4:** more app shapes (intake, booking, directory, journal).
+
+## Privacy
+
+- In local mode, nothing leaves your devices. The PWA talks to the Companion
+  over localhost; the Companion talks to Gemini CLI on the same laptop.
+- In Supabase mode, your job payloads go to your own Supabase project and stay
+  there — no third party sees them. Gemini CLI is subject to Google's own free-tier
+  privacy terms.
+
+## License
+
+MIT (see `LICENSE` when it exists — iteration 1 is pre-license; add one before
+any external contribution).

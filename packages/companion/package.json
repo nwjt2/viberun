@@ -1,0 +1,33 @@
+{
+  "name": "@viberun/companion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "viberun-companion": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "VIBERUN_MODE=local tsx src/index.ts run",
+    "dev:run": "VIBERUN_MODE=local tsx src/index.ts run",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4",
+    "@viberun/shared": "*",
+    "execa": "^9.3.0",
+    "pino": "^9.2.0",
+    "pino-pretty": "^11.2.1",
+    "yargs": "^17.7.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/yargs": "^17.0.32",
+    "tsx": "^4.15.7",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

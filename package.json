@@ -1,12 +1,25 @@
 {
   "name": "viberun",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "start": "node server.js"
+    "dev:pwa": "npm -w @viberun/mobile-pwa run dev",
+    "dev:companion": "npm -w @viberun/companion run dev",
+    "build:pwa": "npm -w @viberun/shared run build && npm -w @viberun/mobile-pwa run build",
+    "build:companion": "npm -w @viberun/shared run build && npm -w @viberun/companion run build",
+    "build:template": "npm -w @viberun/generated-template run build",
+    "build:all": "npm -w @viberun/shared run build && npm -w @viberun/mobile-pwa run build && npm -w @viberun/companion run build && npm -w @viberun/generated-template run build",
+    "lint": "npm -ws --if-present run lint",
+    "typecheck": "npm -ws --if-present run typecheck",
+    "test": "npm -ws --if-present run test",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build:all"
   },
-  "dependencies": {
-    "express": "^4.18.4"
+  "devDependencies": {
+    "typescript": "^5.4.5"
   }
 }

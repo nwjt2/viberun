@@ -1,0 +1,4 @@
+-- Optional seed for idea templates. The mock provider ships with built-in
+-- fixtures; this file is for when the Companion uses Gemini CLI and wants a
+-- richer starting repertoire than "seed templates as JSON in a handler".
+-- Intentionally empty in iteration 1; add your own rows as needed.

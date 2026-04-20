@@ -23,3 +23,18 @@ RUN rm -f /etc/apt/sources.list.d/yarn.list \
     && touch /home/vscode/.gitconfig \
     && chown vscode:vscode /home/vscode/.gitconfig \
     && rm -rf /var/lib/apt/lists/*
+
+# cloudflared — tunnel the companion's local port to a public *.trycloudflare.com URL
+# so the PWA running on a phone can reach it. Pinned to the official Cloudflare
+# release binary; no sudo/apt required by the user at runtime.
+ARG CLOUDFLARED_VERSION=2024.9.1
+RUN set -e; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+      amd64) asset="cloudflared-linux-amd64" ;; \
+      arm64) asset="cloudflared-linux-arm64" ;; \
+      *) echo "unsupported arch: $arch" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL -o /usr/local/bin/cloudflared \
+      "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/${asset}"; \
+    chmod +x /usr/local/bin/cloudflared

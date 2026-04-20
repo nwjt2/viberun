@@ -54,3 +54,18 @@ elif [ -f "${workspace}/package.json" ]; then
     cd "${workspace}"
     sudo -u "${target_user}" npm install
 fi
+
+# Ensure user-scoped ~/.local/bin exists and is on PATH so locally-installed
+# binaries (e.g. an ad-hoc cloudflared download, pipx tools) work without
+# sudo.
+install -d -m 0755 -o "${target_user}" -g "${target_user}" "${target_home}/.local/bin"
+bashrc="${target_home}/.bashrc"
+if ! sudo -u "${target_user}" grep -qs '# viberun: local-bin on PATH' "${bashrc}"; then
+    {
+        printf '\n# viberun: local-bin on PATH\n'
+        printf 'case ":$PATH:" in\n'
+        printf '    *":$HOME/.local/bin:"*) ;;\n'
+        printf '    *) export PATH="$HOME/.local/bin:$PATH" ;;\n'
+        printf 'esac\n'
+    } | sudo -u "${target_user}" tee -a "${bashrc}" >/dev/null
+fi

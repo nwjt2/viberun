@@ -1,7 +1,11 @@
 node_modules
+dist
+*.tsbuildinfo
+.turbo
 npm-debug.log
 .DS_Store
 .env
 .env.*
 !.env.example
 .claude/settings.local.json
+.viberun/

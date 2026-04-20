@@ -1,0 +1,31 @@
+# Supabase CLI project config. Apply to your free-tier project with:
+#   supabase link --project-ref <your-ref>
+#   supabase db push
+# No secrets live here — just port/name metadata.
+
+project_id = "viberun"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = []
+# Magic-link sign-in, no password required. Email provider is the free
+# Supabase built-in SMTP on the free tier.
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true

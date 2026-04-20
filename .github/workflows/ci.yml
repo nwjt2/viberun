@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm -w @viberun/shared run build
+      - run: npm -w @viberun/shared run test
+      - run: npm -w @viberun/companion run build
+      - run: npm -w @viberun/companion run test
+      - run: npm -w @viberun/mobile-pwa run typecheck
+      - run: npm -w @viberun/mobile-pwa run build
+      - run: npm -w @viberun/generated-template run build
