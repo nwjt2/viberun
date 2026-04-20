@@ -109,12 +109,16 @@ export async function waitForJob(
   }
 }
 
-export async function companionAlive(): Promise<boolean> {
+export async function companionAlive(timeoutMs = 4000): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(`${getCompanionBaseUrl()}/healthz`);
+    const res = await fetch(`${getCompanionBaseUrl()}/healthz`, { signal: controller.signal });
     return res.ok;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timer);
   }
 }
 

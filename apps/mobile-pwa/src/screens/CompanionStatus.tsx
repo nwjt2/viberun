@@ -26,6 +26,7 @@ export function CompanionStatus() {
 
   useEffect(() => {
     let cancelled = false;
+    setAlive(null); // reset while we re-check against new base
     async function tick() {
       while (!cancelled) {
         const ok = await companionAlive();
@@ -42,6 +43,14 @@ export function CompanionStatus() {
       cancelled = true;
     };
   }, [base]);
+
+  // Auto-advance: if we're here because the user was gated out of a voice
+  // route and the companion just came online, take them straight back.
+  useEffect(() => {
+    if (alive && returnTo) {
+      navigate(decodeURIComponent(returnTo), { replace: true });
+    }
+  }, [alive, returnTo, navigate]);
 
   const usageBar = usage && usage.dailyLimit
     ? Math.min(100, Math.round((usage.today.count / usage.dailyLimit) * 100))
@@ -78,11 +87,16 @@ export function CompanionStatus() {
         </p>
       </div>
 
-      {alive && returnTo && (
-        <BigButton onClick={() => navigate(decodeURIComponent(returnTo))}>
-          Continue
-        </BigButton>
+      {returnTo && alive === null && (
+        <p className="text-slate-400 text-sm animate-pulse">Checking connection…</p>
       )}
+      {returnTo && alive === false && base !== '/api/companion' && (
+        <p className="text-amber-300 text-sm">
+          Couldn't reach that URL. Double-check it's your current cloudflared tunnel (tunnels expire after a few hours) and that <code>npm run dev:companion</code> is still running.
+        </p>
+      )}
+      {/* When alive flips true with returnTo set, the useEffect above navigates
+          automatically. No button needed. */}
 
       {usage && usage.dailyLimit != null && (
         <div className="rounded-xl border border-slate-800 p-3 space-y-2">
