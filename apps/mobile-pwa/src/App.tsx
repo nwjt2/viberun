@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from './state/store';
 import { Onboarding } from './screens/Onboarding';
 import { Resume } from './screens/Resume';
@@ -12,19 +12,53 @@ import { SliceQuestions } from './screens/SliceQuestions';
 import { SliceReview } from './screens/SliceReview';
 import { CompanionStatus } from './screens/CompanionStatus';
 import { SpeakerToggle } from './components/SpeakerToggle';
+import { companionAlive } from './lib/jobs';
+import { localMode } from './lib/supabase';
+
+// Routes that require the companion to be reachable before they can do
+// anything useful (they enqueue jobs or poll results). Onboarding, Resume,
+// and the Status screen itself don't need it.
+const NEEDS_COMPANION = /^\/(idea|followup|spec|plan|build|slice|questions)(\/|$)/;
 
 export function App() {
   const hydrate = useStore((s) => s.hydrate);
   const onboardingDone = useStore((s) => s.onboardingDone);
   const pickedIdea = useStore((s) => s.pickedIdea);
+  const location = useLocation();
+  const [companionReachable, setCompanionReachable] = useState<boolean | null>(null);
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
-  // Landing route. If the user has nothing in progress, go to idea pick. If
-  // they do, the Resume screen offers continue vs start-new and routes onward.
+  useEffect(() => {
+    let cancelled = false;
+    if (!localMode) {
+      setCompanionReachable(true); // supabase mode: auth handles reachability differently
+      return;
+    }
+    void companionAlive().then((ok) => {
+      if (!cancelled) setCompanionReachable(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname]);
+
   const start = !onboardingDone ? '/onboarding' : pickedIdea ? '/resume' : '/idea';
+
+  // Gate: if the target route requires the companion but it's unreachable,
+  // bounce to /status with a returnTo so the user can configure it and come
+  // back seamlessly.
+  const needs = NEEDS_COMPANION.test(location.pathname);
+  if (localMode && needs && companionReachable === false) {
+    return (
+      <Navigate
+        to={`/status?returnTo=${encodeURIComponent(location.pathname + location.search)}`}
+        replace
+      />
+    );
+  }
 
   return (
     <div className="min-h-dvh flex flex-col">

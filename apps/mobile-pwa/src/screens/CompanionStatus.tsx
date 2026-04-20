@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   companionAlive,
   getCompanionBaseUrl,
@@ -8,12 +8,20 @@ import {
   type UsageStatus,
 } from '../lib/jobs';
 import { localMode } from '../lib/supabase';
+import { BigButton } from '../components/BigButton';
 
 export function CompanionStatus() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const returnTo = params.get('returnTo');
+
   const [alive, setAlive] = useState<boolean | null>(null);
   const [base, setBase] = useState(getCompanionBaseUrl());
-  const [edit, setEdit] = useState(false);
-  const [draft, setDraft] = useState(base);
+  const isDefaultBase = base === '/api/companion';
+  // First-time setup mode: if the default endpoint is unreachable and the
+  // user was bounced here by the gate, open the editor right away.
+  const [edit, setEdit] = useState<boolean>(Boolean(returnTo && isDefaultBase));
+  const [draft, setDraft] = useState(isDefaultBase ? '' : base);
   const [usage, setUsage] = useState<UsageStatus | null>(null);
 
   useEffect(() => {
@@ -26,7 +34,7 @@ export function CompanionStatus() {
           const u = await getUsage();
           if (!cancelled) setUsage(u);
         }
-        await new Promise((r) => setTimeout(r, 5000));
+        await new Promise((r) => setTimeout(r, 3000));
       }
     }
     void tick();
@@ -43,6 +51,18 @@ export function CompanionStatus() {
     <section className="space-y-4">
       <h1 className="text-2xl font-semibold">Companion</h1>
 
+      {returnTo && !alive && (
+        <div className="rounded-xl border border-amber-900/50 bg-amber-950/30 p-4 space-y-2 text-sm text-amber-100">
+          <p className="font-medium">Connect your companion to continue.</p>
+          <p>
+            Viberun's voice flow needs a running companion on your laptop. Start it with{' '}
+            <code>npm run dev:companion</code>, expose it with{' '}
+            <code>cloudflared tunnel --url http://127.0.0.1:4000</code>, and paste the
+            <em> trycloudflare.com</em> URL below.
+          </p>
+        </div>
+      )}
+
       <div className="space-y-1 text-sm">
         <p className="text-slate-400">
           Mode: <span className="text-white">{localMode ? 'local' : 'supabase'}</span>
@@ -57,6 +77,12 @@ export function CompanionStatus() {
           Endpoint: <span className="text-slate-300">{base}</span>
         </p>
       </div>
+
+      {alive && returnTo && (
+        <BigButton onClick={() => navigate(decodeURIComponent(returnTo))}>
+          Continue
+        </BigButton>
+      )}
 
       {usage && usage.dailyLimit != null && (
         <div className="rounded-xl border border-slate-800 p-3 space-y-2">
@@ -87,7 +113,7 @@ export function CompanionStatus() {
       {!edit && (
         <button
           onClick={() => {
-            setDraft(base === '/api/companion' ? '' : base);
+            setDraft(isDefaultBase ? '' : base);
             setEdit(true);
           }}
           className="chip bg-slate-900 border border-slate-800 text-sm"
@@ -104,13 +130,16 @@ export function CompanionStatus() {
             </span>
             <input
               type="url"
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="https://..."
               className="w-full rounded-lg bg-slate-900 border border-slate-800 px-3 py-2"
             />
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => {
                 const normalized = draft.trim().replace(/\/$/, '') || null;
@@ -139,19 +168,22 @@ export function CompanionStatus() {
         </div>
       )}
 
-      {!alive && (
+      {!alive && !returnTo && (
         <div className="rounded-xl border border-amber-900/50 bg-amber-950/30 p-4 space-y-2 text-sm text-amber-100">
           <p className="font-medium">Your companion is not reachable.</p>
           <p>
             On your laptop: in the repo, run <code>npm run dev:companion</code>. To reach it from your
-            phone, run a tunnel (<code>cloudflared tunnel --url http://localhost:4000</code>) and
+            phone, run a tunnel (<code>cloudflared tunnel --url http://127.0.0.1:4000</code>) and
             paste the tunnel URL in <em>Change endpoint</em> above.
           </p>
         </div>
       )}
-      <Link to="/" className="chip bg-slate-900 border border-slate-800 inline-flex">
-        Back
-      </Link>
+
+      {!returnTo && (
+        <Link to="/" className="chip bg-slate-900 border border-slate-800 inline-flex">
+          Back
+        </Link>
+      )}
     </section>
   );
 }

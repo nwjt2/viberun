@@ -40,17 +40,29 @@ export async function enqueueJob<T extends JobType>(args: {
   userId?: string;
 }): Promise<JobEnvelope> {
   if (localMode || !supabase) {
-    const res = await fetch(`${getCompanionBaseUrl()}/jobs`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        userId: args.userId ?? 'local-user',
-        projectId: args.projectId ?? null,
-        type: args.type,
-        payload: args.payload,
-      }),
-    });
-    if (!res.ok) throw new Error(`enqueue failed: ${res.status}`);
+    const base = getCompanionBaseUrl();
+    let res: Response;
+    try {
+      res = await fetch(`${base}/jobs`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          userId: args.userId ?? 'local-user',
+          projectId: args.projectId ?? null,
+          type: args.type,
+          payload: args.payload,
+        }),
+      });
+    } catch {
+      throw new Error(
+        `Can't reach your companion at ${base}. Tap Viberun (top-left) → set the endpoint to your laptop's tunnel URL.`,
+      );
+    }
+    if (!res.ok) {
+      throw new Error(
+        `Companion rejected the request (${res.status}). Tap Viberun (top-left) and set the endpoint to your laptop's tunnel URL.`,
+      );
+    }
     return res.json();
   }
   const { data, error } = await supabase
