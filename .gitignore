@@ -1,11 +1,48 @@
+# Dependencies
 node_modules
+.yarn/cache
+.yarn/install-state.gz
+.pnpm-store
+
+# Build output
 dist
 *.tsbuildinfo
 .turbo
-npm-debug.log
-.DS_Store
+.vite
+coverage
+
+# Env / secrets
 .env
 .env.*
 !.env.example
+
+# Logs
+*.log
+npm-debug.log
+logs
+
+# Cache
+.eslintcache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea
+.history
+*.swp
+*.swo
+
+# Claude Code per-user settings
 .claude/settings.local.json
+
+# Viberun per-project workspaces (companion writes generated apps here)
 .viberun/
+
+# Supabase local-dev artifacts
+supabase/.branches
+supabase/.temp

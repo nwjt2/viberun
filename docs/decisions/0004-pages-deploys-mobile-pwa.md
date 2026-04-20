@@ -22,8 +22,9 @@ Pages provides that for free.
 default), the PWA ships in local mode and the user must still run a local
 Companion reachable via tunnel.
 
-The old `public/` directory is moved to `archive/old-pwa/` — git history
-preserves it, the on-disk copy lets us grep it.
+The old `public/` directory is removed in the same commit — git history
+preserves it (find it via `git log --follow archive/old-pwa/app.js` or
+`git show 286a438:public/app.js`).
 
 ## Consequences
 
